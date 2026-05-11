@@ -1,2 +1,4 @@
-# cardsgo
-*Sketch Version - A light app to create and collect your own unique and meaningful CARDS. P.S. First try on building an app with windsurf and Gemini
+# 不，这不再是一个什么无聊的卡牌游戏 (Never mind)
+其实可能也没有变得更有意思，嗯。
+
+现在打算做一个emoji饮品调制App，当然也只是初步的想法呐。
