@@ -2,51 +2,74 @@ import { Colors, Gradients } from '@/constants/theme';
 import { useDrinks } from '@/context/DrinkContext';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
-import { ChevronRight, Plus, Share2, Sparkles } from 'lucide-react-native';
-import { Dimensions, SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { ChevronRight, FileText, Plus, Share2, Sparkles } from 'lucide-react-native';
+import React from 'react';
+import { Animated, Dimensions, SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 const { width } = Dimensions.get('window');
 
 export default function HomeScreen() {
   const router = useRouter();
-  const { drinks } = useDrinks();
+  const { drinks, isFirstTime } = useDrinks();
+  const fadeAnim = React.useRef(new Animated.Value(0)).current;
+
+  React.useEffect(() => {
+    Animated.timing(fadeAnim, {
+      toValue: 1,
+      duration: 800,
+      useNativeDriver: true,
+    }).start();
+  }, []);
 
   const handleStartMixing = () => {
-    router.push('/mixer');
+    // Use the new step-by-step mixer flow
+    router.push('/mixer/base');
+  };
+
+  const handleGenerateMenu = () => {
+    if (drinks.length > 0) {
+      router.push('/menu/select');
+    }
   };
 
   const renderEmptyState = () => (
     <View style={styles.emptyContainer}>
-      <Text style={styles.title}>Emoji Mixology</Text>
-      <Text style={styles.subtitle}>Your unique drink menu</Text>
-      
-      <View style={styles.logoWrapper}>
-        <View style={styles.logoShadow} />
-        <View style={styles.logoCircle}>
-          <Text style={styles.logoEmoji}>🍹</Text>
+      <Animated.View style={{ opacity: fadeAnim }}>
+        <View style={styles.logoContainer}>
+          <View style={styles.logoCircle}>
+            <Sparkles size={48} color={Colors.primary} />
+          </View>
         </View>
-      </View>
+        
+        <View style={styles.textContainer}>
+          <Text style={styles.title}>emojDRiNKs</Text>
+          <Text style={styles.subtitle}>Create your unique drink</Text>
+        </View>
+      </Animated.View>
 
-      <Text style={styles.emptyTitle}>No Drinks Yet!</Text>
-      <Text style={styles.emptyText}>
-        Mix up your first unique emoji drink and start building your menu.
-      </Text>
-
-      <TouchableOpacity 
-        style={styles.mainButton} 
-        onPress={handleStartMixing}
-        activeOpacity={0.8}
-      >
-        <LinearGradient
-          colors={Gradients.button}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 0 }}
-          style={styles.gradientButton}
+      <Animated.View style={{
+        transform: [{
+          translateY: fadeAnim.interpolate({
+            inputRange: [0, 1],
+            outputRange: [30, 0],
+          })
+        }]
+      }}>
+        <TouchableOpacity 
+          style={styles.startButton} 
+          onPress={handleStartMixing}
+          activeOpacity={0.8}
         >
-          <Sparkles size={20} color={Colors.white} />
-          <Text style={styles.buttonText}>Start Mixing</Text>
-        </LinearGradient>
-      </TouchableOpacity>
+          <LinearGradient
+            colors={Gradients.button}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 0 }}
+            style={styles.gradientButton}
+          >
+            <Text style={styles.startButtonText}>Start Mixing</Text>
+          </LinearGradient>
+        </TouchableOpacity>
+      </Animated.View>
     </View>
   );
 
@@ -57,9 +80,18 @@ export default function HomeScreen() {
           <Text style={styles.title}>Emoji Mixology</Text>
           <Text style={styles.subtitle}>Your unique drink menu</Text>
         </View>
-        <TouchableOpacity style={styles.shareIcon}>
-          <Share2 size={20} color={Colors.primary} />
-        </TouchableOpacity>
+        <View style={styles.headerButtons}>
+          <TouchableOpacity 
+            style={[styles.actionIcon, drinks.length === 0 && styles.disabledIcon]} 
+            onPress={handleGenerateMenu}
+            disabled={drinks.length === 0}
+          >
+            <FileText size={20} color={drinks.length > 0 ? Colors.primary : Colors.textLight} />
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.shareIcon}>
+            <Share2 size={20} color={Colors.primary} />
+          </TouchableOpacity>
+        </View>
       </View>
 
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
@@ -144,8 +176,16 @@ const styles = StyleSheet.create({
     color: Colors.textLight,
     marginBottom: 60,
   },
+  logoContainer: {
+    alignItems: 'center',
+    marginBottom: 40,
+  },
   logoWrapper: {
     position: 'relative',
+    marginBottom: 60,
+  },
+  textContainer: {
+    alignItems: 'center',
     marginBottom: 60,
   },
   logoCircle: {
@@ -192,6 +232,12 @@ const styles = StyleSheet.create({
     borderRadius: 30,
     overflow: 'hidden',
   },
+  startButton: {
+    width: '100%',
+    borderRadius: 30,
+    overflow: 'hidden',
+    marginBottom: 20,
+  },
   gradientButton: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -204,6 +250,11 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: 'bold',
   },
+  startButtonText: {
+    color: Colors.white,
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -211,6 +262,26 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     paddingTop: 40,
     paddingBottom: 20,
+  },
+  headerButtons: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  actionIcon: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: Colors.white,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 3,
+  },
+  disabledIcon: {
+    opacity: 0.5,
   },
   shareIcon: {
     width: 44,

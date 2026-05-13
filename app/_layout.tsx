@@ -10,6 +10,7 @@ export default function RootLayout() {
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         <Stack.Screen name="mixer" options={{ headerShown: false, presentation: 'modal' }} />
         <Stack.Screen name="creation" options={{ headerShown: false }} />
+        <Stack.Screen name="menu" options={{ headerShown: false }} />
       </Stack>
       <StatusBar style="auto" />
     </DrinkProvider>
